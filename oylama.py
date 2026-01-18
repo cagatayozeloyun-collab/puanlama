@@ -3,7 +3,7 @@ import pandas as pd
 import time
 import random
 
-# --- SAYFA AYARLARI VE GELİŞMİŞ CSS ---
+# --- SAYFA AYARLARI VE CSS ---
 st.set_page_config(page_title="YTÜ Cingen Oylama", layout="wide")
 
 st.markdown("""
@@ -12,36 +12,36 @@ st.markdown("""
     
     .main-title {
         color: #e63946; text-align: center; font-family: 'Arial Black', sans-serif;
-        font-size: 45px !important; font-weight: 900; margin-bottom: 20px;
+        font-size: 42px !important; font-weight: 900; margin-bottom: 25px;
         text-transform: uppercase; text-shadow: 2px 2px 8px rgba(230, 57, 70, 0.5);
     }
 
-    /* Fotoğraf Boyutu Sınırlandırma */
+    /* Görsel Boyutu */
     .competitor-img {
-        max-height: 400px; object-fit: contain; border-radius: 15px;
-        border: 2px solid #e63946; margin-bottom: 15px;
+        border-radius: 15px; border: 3px solid #e63946;
+        margin-bottom: 10px; max-width: 100%;
     }
 
     .item-header { 
-        color: #e63946; font-size: 38px; font-weight: bold; 
-        text-transform: uppercase; margin-bottom: 10px; border-bottom: 2px solid #e63946;
+        color: #e63946; font-size: 32px; font-weight: bold; 
+        text-transform: uppercase; margin-bottom: 15px;
     }
 
-    .rank-info-box { 
-        background-color: #1a1c24; padding: 25px; border-radius: 20px; 
-        text-align: center; border: 3px solid #e63946; 
-        font-size: 30px; font-weight: 900; color: #ffffff;
-        margin-top: 20px; box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+    /* Puan Durumu Tablosu Stili */
+    .stTable { font-size: 18px !important; }
+    th { background-color: #e63946 !important; color: white !important; }
+    
+    /* Jüri Yazıları */
+    .jury-text {
+        font-size: 20px; font-weight: bold; margin-bottom: 8px;
+        border-left: 4px solid #e63946; padding-left: 10px;
     }
     
-    /* Tablo Fontları */
-    .stTable { font-size: 20px !important; }
-    th { background-color: #e63946 !important; color: white !important; font-size: 22px !important; }
-    td { font-size: 19px !important; font-weight: bold; }
-
-    .jury-score-box { 
-        background-color: #1a1c24; padding: 15px; border-radius: 12px; 
-        border-top: 4px solid #e63946; margin: 5px 0; text-align: center;
+    /* Canlı Sıralama Bilgisi */
+    .live-rank {
+        background-color: #e63946; color: white; padding: 10px;
+        border-radius: 10px; text-align: center; font-size: 24px;
+        font-weight: 900; margin-top: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -70,20 +70,20 @@ with st.sidebar:
 # DEV ANA BAŞLIK
 st.markdown('<div class="main-title">YTÜ CİNGEN DÜĞÜN ORGANİZASYONLARI EKİBİ OYLUYOR</div>', unsafe_allow_html=True)
 
-# --- 1. OYLAMA ---
+# --- 1. GİZLİ OYLAMA ---
 with st.expander("📝 Gizli Oylama Girişi"):
     voter = st.text_input("Jüri Adı:")
     items = list(st.session_state.competitor_data.keys())
-    order = st.multiselect("Sıralamanı Yap:", items, default=items)
+    order = st.multiselect("Favoriden Sona Sırala:", items, default=items)
     if st.button("Oyu Kaydet"):
         if voter and len(order) == len(items) > 0:
             st.session_state.all_votes.append({"voter": voter, "order": order})
-            st.success("Kaydedildi!")
+            st.success("Sisteme eklendi!")
             time.sleep(1)
             st.rerun()
 
-# --- 2. SEREMONİ (YENİ DÜZEN) ---
-if st.button("🔥 SONUÇLARI AÇIKLA"):
+# --- 2. SEREMONİ (YENİ 3'LÜ DÜZEN) ---
+if st.button("🔥 SEREMONİYİ BAŞLAT"):
     if not st.session_state.all_votes:
         st.error("Henüz oy yok!")
     else:
@@ -91,48 +91,25 @@ if st.button("🔥 SONUÇLARI AÇIKLA"):
         random.shuffle(reveal_order)
         leaderboard = []
 
-        # Her yarışmacı için bir aşama
+        # Sabit Puan Durumu Alanı Oluşturma
+        st.divider()
+        main_container = st.empty()
+
         for item in reveal_order:
-            st.divider()
+            # Puan ve Sıralama Hesaplama
+            total_p = 0
+            ranks = []
+            jury_details = []
             
-            # EKRANI İKİYE BÖLÜYORUZ
-            left_col, right_col = st.columns([1.2, 1])
+            for vote in st.session_state.all_votes:
+                r = vote['order'].index(item) + 1
+                p = F1_POINTS.get(r, 0)
+                total_p += p
+                ranks.append(r)
+                jury_details.append(f"{vote['voter']}: **+{p} Puan**")
             
-            with left_col:
-                st.markdown(f'<div class="item-header">{item}</div>', unsafe_allow_html=True)
-                # Fotoğrafı boyutlandırılmış olarak göster
-                photo = st.session_state.competitor_data.get(item)
-                if photo:
-                    st.image(photo, width=450)
-                
-                # Jüri Puanları
-                jury_cols = st.columns(3)
-                total_p = 0
-                ranks = []
-                for i, vote in enumerate(st.session_state.all_votes):
-                    r = vote['order'].index(item) + 1
-                    p = F1_POINTS.get(r, 0)
-                    total_p += p
-                    ranks.append(r)
-                    with jury_cols[i % 3]:
-                        st.markdown(f'<div class="jury-score-box"><b>{vote["voter"]}</b><br><span style="color:#e63946; font-size:20px;">+{p}</span></div>', unsafe_allow_html=True)
-                
-                # Averaj ve Sıra Hesaplama
-                avg_r = sum(ranks) / len(ranks)
-                leaderboard.append({"İsim": item, "Puan": total_p, "Ort. Sıra": round(avg_r, 2)})
-                
-                # Bu yarışmacının anlık sıralamasını bul
-                temp_df = pd.DataFrame(leaderboard).sort_values(by=["Puan", "Ort. Sıra"], ascending=[False, True]).reset_index(drop=True)
-                temp_df.index += 1
-                pos = temp_df[temp_df['İsim'] == item].index[0]
-                
-                st.markdown(f'<div class="rank-info-box">🏆 {pos}. SIRAYA YERLEŞTİ!</div>', unsafe_allow_html=True)
-
-            with right_col:
-                st.write("### 📊 CANLI PUAN DURUMU")
-                st.table(temp_df)
+            avg_r = sum(ranks) / len(ranks)
+            leaderboard.append({"İsim": item, "Toplam Puan": total_p, "Ort. Sıra": round(avg_r, 2)})
             
-            time.sleep(5) # Bir sonraki kişiye geçmeden önce 5 saniye bekle
-
-        st.balloons()
-        st.success("Tüm ekip oylamayı tamamladı!")
+            # Tabloyu Sırala
+            current_df = pd.
