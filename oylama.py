@@ -6,6 +6,7 @@ import random
 # --- 1. TASARIM VE STİL AYARLARI ---
 st.set_page_config(page_title="YTÜ CİNGEN OYLAMA", layout="wide")
 
+# CSS kodunu en güvenli şekilde markdown içine gömüyoruz
 st.markdown("""
 <style>
     .main { background-color: #0e1117; color: #ffffff; }
@@ -27,6 +28,5 @@ st.markdown("""
         text-transform: uppercase;
     }
     .stTable { font-size: 18px !important; }
-    th { background-color: #e63946 !important; color: white !important; font-size: 20px !important; }
-    td { font-size: 18px !important; font-weight: bold; }
-    .stButton>button { width: 100%; border-radius: 12px; background-color: #
+    th { background-color: #e63946 !important; color: white !important; }
+    .stButton>button { width: 100%; border-radius: 12px; background-color: #e63946; color: white; font-weight: bold; height: 3.5
