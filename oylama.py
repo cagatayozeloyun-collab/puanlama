@@ -27,51 +27,92 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# F1 Puan Tablosu
 F1_POINTS = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
 
+# --- STATE YÖNETİMİ ---
 if 'all_votes' not in st.session_state: st.session_state.all_votes = []
 if 'competitor_data' not in st.session_state: st.session_state.competitor_data = {}
 
+# --- SIDEBAR ---
 with st.sidebar:
     st.header("⚙️ Ekip Paneli")
     new_item = st.text_input("Yarışmacı Adı:")
-    new_photo = st.file_uploader("Fotoğraf Yükle:", type=['jpg', 'jpeg', 'png'])
+    new_photo = st.file_uploader("Fotoğraf Yükle:", type=['jpg', 'jpeg', 'png'], key="uploader")
     if st.button("Listeye Ekle") and new_item:
         st.session_state.competitor_data[new_item] = new_photo
-        st.success(f"{new_item} eklendi!")
+        st.success(f"{new_item} listeye alındı!")
     st.divider()
     if st.button("Hafızayı Temizle"):
         st.session_state.all_votes = []
         st.session_state.competitor_data = {}
         st.rerun()
 
+# ANA BAŞLIK
 st.markdown('<div class="main-title">YTÜ CİNGEN DÜĞÜN ORGANİZASYONLARI EKİBİ OYLUYOR</div>', unsafe_allow_html=True)
 
+# --- OYLAMA ---
 with st.expander("📝 Gizli Oylama Girişi"):
-    voter = st.text_input("Jüri Adı:")
+    voter = st.text_input("Jüri Adı:", key="voter_name")
     items = list(st.session_state.competitor_data.keys())
-    order = st.multiselect("Favoriden Sona Sırala:", items, default=items)
-    if st.button("Oyu Kaydet"):
-        if voter and len(order) == len(items) > 0:
-            st.session_state.all_votes.append({"voter": voter, "order": order})
-            st.success("Sisteme eklendi!")
-            time.sleep(1)
-            st.rerun()
+    if items:
+        order = st.multiselect("Favoriden Sona Sırala:", items, default=items, key="vote_order")
+        if st.button("Oyu Kaydet"):
+            if voter and len(order) == len(items):
+                st.session_state.all_votes.append({"voter": voter, "order": order})
+                st.success("Oyun mahzene eklendi!")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.warning("Lütfen adını yaz ve tüm yarışmacıları listeye ekle!")
+    else:
+        st.info("Önce sol taraftan yarışmacı eklemelisin.")
 
+# --- SEREMONİ (Hata Korumalı) ---
 if st.button("🔥 SEREMONİYİ BAŞLAT"):
     if not st.session_state.all_votes:
-        st.error("Henüz oy yok!")
+        st.error("Henüz kimse oy vermedi!")
+    elif not st.session_state.competitor_data:
+        st.error("Ortada yarışmacı yok!")
     else:
-        reveal_order = list(st.session_state.competitor_data.keys())
-        random.shuffle(reveal_order)
+        reveal_list = list(st.session_state.competitor_data.keys())
+        random.shuffle(reveal_list)
         leaderboard = []
+        
         st.divider()
-        main_container = st.empty()
+        display_area = st.empty()
 
-        for item in reveal_order:
-            total_p = 0
-            ranks = []
-            jury_details = []
+        for current_item in reveal_list:
+            total_score = 0
+            rank_list = []
+            jury_feedback = []
             
-            for vote in st.session_state.all_votes:
-                # HATA ÖNLEYİCİ: Eğer item oylama listesinde yoksa 0 puan ver (ValueError engeller
+            # Puanları Hesapla
+            for v_data in st.session_state.all_votes:
+                if current_item in v_data['order']:
+                    rank_num = v_data['order'].index(current_item) + 1
+                    pts = F1_POINTS.get(rank_num, 0)
+                else:
+                    rank_num = 99
+                    pts = 0
+                
+                total_score += pts
+                rank_list.append(rank_num)
+                jury_feedback.append(f"{v_data['voter']}: **+{pts} Puan**")
+            
+            # Liderlik Tablosunu Güncelle
+            avg_rank = sum(rank_list) / len(rank_list) if rank_list else 99
+            leaderboard.append({"İsim": current_item, "Puan": total_score, "Ort. Sıra": round(avg_rank, 2)})
+            
+            # DataFrame'i oluştur ve sırala
+            current_leaderboard_df = pd.DataFrame(leaderboard).sort_values(
+                by=["Puan", "Ort. Sıra"], ascending=[False, True]
+            ).reset_index(drop=True)
+            current_leaderboard_df.index += 1
+            
+            # Anlık konumu bul
+            current_pos = current_leaderboard_df[current_leaderboard_df['İsim'] == current_item].index[0]
+
+            # EKRANA BAS (77. Satır Civarındaki Hataları Önleyen Dinamik Yapı)
+            with display_area.container():
+                c1, c2, c3 = st.columns(
