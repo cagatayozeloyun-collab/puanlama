@@ -3,10 +3,9 @@ import pandas as pd
 import time
 import random
 
-# --- 1. SAYFA VE TASARIM AYARLARI ---
+# --- 1. TASARIM VE STİL AYARLARI ---
 st.set_page_config(page_title="YTÜ CİNGEN OYLAMA", layout="wide")
 
-# CSS BLOKLARINI KESİNLİKLE HATA VERMEYECEK ŞEKİLDE AYARLIYORUZ
 st.markdown("""
 <style>
     .main { background-color: #0e1117; color: #ffffff; }
@@ -28,10 +27,6 @@ st.markdown("""
         text-transform: uppercase;
     }
     .stTable { font-size: 18px !important; }
-    th { background-color: #e63946 !important; color: white !important; }
-    .stButton>button { width: 100%; border-radius: 12px; background-color: #e63946; color: white; font-weight: bold; height: 3.5em; }
-</style>
-""", unsafe_allow_html=True)
-
-# F1 PUAN SİSTEMİ
-F1_POINTS = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6
+    th { background-color: #e63946 !important; color: white !important; font-size: 20px !important; }
+    td { font-size: 18px !important; font-weight: bold; }
+    .stButton>button { width: 100%; border-radius: 12px; background-color: #
