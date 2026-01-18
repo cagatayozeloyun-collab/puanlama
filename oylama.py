@@ -16,7 +16,7 @@ st.markdown("""
     h1, h2 { text-align: center; color: #e63946; font-family: 'Arial Black', sans-serif; }
     .stTable { background-color: #1a1c24; border-radius: 10px; }
     </style>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
 
 # --- SABİTLER ---
 F1_POINTS = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
@@ -60,4 +60,5 @@ with st.container():
         if voter_name and len(selected_order) == len(st.session_state.cars):
             st.session_state.all_votes.append({"voter": voter_name, "order": selected_order})
             st.success(f"Teşekkürler {voter_name}, oyların kaydedildi!")
+
             time.sleep
