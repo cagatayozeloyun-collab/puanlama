@@ -6,7 +6,7 @@ import random
 # --- 1. TASARIM VE STİL AYARLARI ---
 st.set_page_config(page_title="YTÜ CİNGEN OYLAMA", layout="wide")
 
-# CSS kodunu güvenli bir değişken içinde topluyoruz
+# CSS kodunu daha güvenli olması için triple-quotes (üç tırnak) içine alıyoruz
 CUSTOM_CSS = """
 <style>
     .main { background-color: #0e1117; color: #ffffff; }
@@ -20,7 +20,7 @@ CUSTOM_CSS = """
     th { background-color: #e63946 !important; color: white !important; font-size: 20px !important; }
     td { font-size: 18px !important; font-weight: bold; }
     .jury-text-box {
-        font-size: 22px; font-weight: bold; margin-bottom: 10px;
+        font-size: 20px; font-weight: bold; margin-bottom: 10px;
         border-left: 5px solid #e63946; padding-left: 15px; background: #1a1c24;
         padding-top: 10px; padding-bottom: 10px; border-radius: 5px;
     }
@@ -45,7 +45,7 @@ if 'competitor_data' not in st.session_state: st.session_state.competitor_data =
 with st.sidebar:
     st.header("⚙️ ORGANİZASYON PANELİ")
     new_name = st.text_input("YARIŞMACI ADI:")
-    new_file = st.file_uploader("FOTOĞRAF SEÇ (JPG/PNG):", type=['jpg', 'jpeg', 'png'], key="file_up")
+    new_file = st.file_uploader("FOTOĞRAF SEÇ (CİHAZDAN):", type=['jpg', 'jpeg', 'png'], key="file_up")
     
     if st.button("LİSTEYE EKLE") and new_name:
         st.session_state.competitor_data[new_name] = new_file
@@ -61,4 +61,26 @@ with st.sidebar:
 st.markdown('<div class="main-title">YTÜ CİNGEN DÜĞÜN ORGANİZASYONLARI EKİBİ OYLUYOR</div>', unsafe_allow_html=True)
 
 # --- 4. GİZLİ OYLAMA ALANI ---
-with st.expander("📝 J
+# 64. SATIR HATASI BURADAKİ TIRNAKLARDAN KAYNAKLANIYORDU, DÜZELTİLDİ:
+with st.expander("📝 JÜRİ OYLAMA GİRİŞİ (GİZLİ)"):
+    j_name = st.text_input("JÜRİ ÜYESİ ADI:", key="j_name")
+    list_items = list(st.session_state.competitor_data.keys())
+    
+    if list_items:
+        v_order = st.multiselect("EN İYİDEN EN KÖTÜYE SIRALA:", list_items, default=list_items, key="v_order")
+        if st.button("OYU SİSTEME GÖNDER"):
+            if j_name and len(v_order) == len(list_items):
+                st.session_state.all_votes.append({"voter": j_name, "order": v_order})
+                st.success("OYUNUZ KAYDEDİLDİ!")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.warning("LÜTFEN ADINIZI YAZIN VE TÜM LİSTEYİ SIRALAYIN!")
+    else:
+        st.info("OYLAMA BAŞLAMADAN ÖNCE SOL PANELDE YARIŞMACI EKLEMELİSİNİZ.")
+
+# --- 5. BÜYÜK SEREMONİ ---
+if st.button("🚀 SEREMONİYİ BAŞLAT"):
+    if not st.session_state.all_votes:
+        st.error("HENÜZ HİÇ OY KULLANILMADI!")
+    elif not st
