@@ -3,62 +3,74 @@ import pandas as pd
 import time
 import random
 
-# --- SAYFA AYARLARI VE KARANLIK TEMA ---
-st.set_page_config(page_title="MR.WHITE Racing - Reveal", layout="wide")
+# --- SAYFA AYARLARI VE GELİŞMİŞ CSS ---
+st.set_page_config(page_title="YTÜ Cingen Oylama", layout="wide")
 
 st.markdown("""
     <style>
+    /* Genel Arka Plan */
     .main { background-color: #0e1117; color: #ffffff; }
-    .stButton>button { width: 100%; border-radius: 8px; background-color: #e63946; color: white; border: none; font-weight: bold; height: 3em; }
-    .car-header { color: #e63946; font-size: 45px; text-align: center; font-weight: bold; text-transform: uppercase; margin: 20px 0; border-bottom: 2px solid #e63946; }
-    .jury-score-box { background-color: #1a1c24; padding: 15px; border-radius: 10px; border-left: 5px solid #e63946; margin: 10px 0; text-align: center; }
-    .rank-info { background-color: #262730; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #e63946; font-size: 22px; margin-top: 15px; }
-    h1, h2 { text-align: center; color: #e63946; font-family: 'Arial Black', sans-serif; }
-    .stTable { background-color: #1a1c24; border-radius: 10px; }
+    
+    /* DEV BAŞLIK AYARI */
+    .main-title {
+        color: #e63946;
+        text-align: center;
+        font-family: 'Arial Black', sans-serif;
+        font-size: 55px !important;
+        font-weight: 900;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        text-shadow: 3px 3px 10px rgba(230, 57, 70, 0.5);
+    }
+
+    /* Buton Tasarımları */
+    .stButton>button { 
+        width: 100%; border-radius: 12px; background-color: #e63946; 
+        color: white; border: none; font-weight: bold; height: 3.8em; 
+        font-size: 20px; transition: 0.3s;
+    }
+    .stButton>button:hover { background-color: #ff4d5a; transform: scale(1.02); }
+
+    /* Yarışmacı/Öğe Başlığı */
+    .item-header { 
+        color: #e63946; font-size: 55px; text-align: center; 
+        font-weight: bold; text-transform: uppercase; margin: 25px 0; 
+        border-bottom: 4px solid #e63946; letter-spacing: 3px;
+    }
+
+    /* BÜYÜTÜLMÜŞ SIRALAMA BALONU */
+    .rank-info { 
+        background-color: #1a1c24; padding: 40px; border-radius: 25px; 
+        text-align: center; border: 3px solid #e63946; 
+        font-size: 42px; font-weight: 900; color: #ffffff;
+        margin: 30px 0; box-shadow: 0 0 30px rgba(230, 57, 70, 0.6);
+        text-transform: uppercase;
+    }
+    
+    /* Tablo Fontları */
+    .stTable { font-size: 26px !important; }
+    th { background-color: #e63946 !important; color: white !important; font-size: 28px !important; }
+    td { font-size: 24px !important; font-weight: bold; }
+
+    .jury-score-box { 
+        background-color: #1a1c24; padding: 25px; border-radius: 15px; 
+        border-top: 5px solid #e63946; margin: 10px 0; text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SABİTLER ---
+# F1 Puanlama Sistemi
 F1_POINTS = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
 
-# --- SESSION STATE (VERİ YÖNETİMİ) ---
-if 'all_votes' not in st.session_state:
-    st.session_state.all_votes = []
-if 'cars' not in st.session_state:
-    # Varsayılan ikonik modeller
-    st.session_state.cars = ["Ferrari F40", "BMW M5 E39", "McLaren F1", "Porsche 911 GT3 RS", "Lancia Delta Integrale", "Nissan GT-R R34"]
+# --- HAFIZA YÖNETİMİ ---
+if 'all_votes' not in st.session_state: st.session_state.all_votes = []
+if 'competitor_data' not in st.session_state:
+    st.session_state.competitor_data = {}
 
-# --- SIDEBAR: YÖNETİM ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.header("⚙️ Garaj Yönetimi")
-    new_car = st.text_input("Listeye Yeni Araba Ekle:")
-    if st.button("Ekle") and new_car:
-        st.session_state.cars.append(new_car)
-        st.rerun()
-    
-    st.divider()
-    if st.button("Tüm Verileri Sıfırla"):
-        st.session_state.all_votes = []
-        st.rerun()
-
-st.title("🏎️ MR.WHITE RACING: THE REVEAL")
-
-# --- 1. ADIM: GİZLİ OYLAMA ---
-st.subheader("🗳️ Jüri Oylama Paneli")
-with st.container():
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        voter_name = st.text_input("Jüri Adı:", placeholder="İsminizi girin...")
-    with col2:
-        selected_order = st.multiselect(
-            "Arabaları En İyiden En Kötüye Doğru Sıralayın:", 
-            st.session_state.cars, 
-            default=st.session_state.cars
-        )
-
-    if st.button("Oyu Sisteme Gönder (Gizli)"):
-        if voter_name and len(selected_order) == len(st.session_state.cars):
-            st.session_state.all_votes.append({"voter": voter_name, "order": selected_order})
-            st.success(f"Teşekkürler {voter_name}, oyların kaydedildi!")
-
-            time.sleep
+    st.header("⚙️ Ekip Paneli")
+    new_item = st.text_input("Yarışmacı/Öğe Adı:")
+    new_photo = st.text_input("Fotoğraf URL:")
+    if st.button("Listeye Ekle") and new_item:
+        st.session_
