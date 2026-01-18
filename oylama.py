@@ -6,6 +6,7 @@ import random
 # --- 1. TASARIM VE STİL AYARLARI ---
 st.set_page_config(page_title="YTÜ CİNGEN OYLAMA", layout="wide")
 
+# CSS kodunu triple-quote hatalarını önlemek için en güvenli şekilde yazıyoruz
 st.markdown("""
 <style>
     .main { background-color: #0e1117; color: #ffffff; }
@@ -27,15 +28,4 @@ st.markdown("""
         text-transform: uppercase;
     }
     .stTable { font-size: 18px !important; }
-    th { background-color: #e63946 !important; color: white !important; font-size: 20px !important; }
-    td { font-size: 18px !important; font-weight: bold; }
-    .stButton>button { width: 100%; border-radius: 12px; background-color: #e63946; color: white; font-weight: bold; height: 3.5em; }
-</style>
-""", unsafe_allow_html=True)
-
-# F1 Puanlama Sistemi
-F1_POINTS = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
-
-# --- 2. VERİ YÖNETİMİ ---
-if 'all_votes' not in st.session_state: st.session_state.all_votes = []
-if 'competitor_
+    th { background-color: #e63946 !important; color: white !important; font-size: 20px
